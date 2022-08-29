@@ -1,4 +1,4 @@
-import { Form } from '@openmrs/ngx-formentry';
+import { Form } from '@ampath-kenya/ngx-formentry';
 
 interface OpenMRSResource {
   display: string;
