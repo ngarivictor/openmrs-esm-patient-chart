@@ -71,6 +71,7 @@ export function setupDynamicOfflineFormDataHandler() {
 async function getCacheableFormUrls(formUuid: string) {
   const getFormRes = await openmrsFetch<FormEncounter>(`/ws/rest/v1/form/${formUuid}?v=full`);
   const form = getFormRes.data;
+
   const getClobdataRes = await openmrsFetch(`/ws/rest/v1/clobdata/${form.resources[0].valueReference}?v=full`);
   const clobdata = getClobdataRes.data;
 

@@ -9,6 +9,7 @@ import {
   Visit,
 } from '@openmrs/esm-framework';
 import { useEffect, useState } from 'react';
+import useSWR from 'swr';
 import { v4 as uuid } from 'uuid';
 import { patientRegistrationSyncType } from './patient';
 
@@ -31,45 +32,27 @@ export interface OfflineVisit extends NewVisitPayload {
  */
 export function useVisitOrOfflineVisit(patientUuid: string) {
   const isOnline = useConnectivity();
-  const [visit, setVisit] = useState<ReturnType<typeof useVisit> | undefined>();
-
-  useEffect(() => {
-    setVisit((isOnline ? useVisit : useOfflineVisit)(patientUuid));
-  }, [isOnline, patientUuid]);
-
-  return visit;
+  const offlineVisit = useOfflineVisit(patientUuid);
+  const onlineVisit = useVisit(patientUuid);
+  return isOnline ? onlineVisit : offlineVisit;
 }
 
 /**
  * Returns the patient's current offline visit.
  * @param patientUuid The UUID of the patient.
  */
-export function useOfflineVisit(patientUuid: string): ReturnType<typeof useVisit> {
-  const [offlineVisitState, setOfflineVisitState] = useState<{
-    data: Visit | null;
-    error: Error | null;
-    isLoading: boolean;
-  }>({ data: null, error: null, isLoading: true });
-  useEffect(() => {
-    getOfflineVisitForPatient(patientUuid)
-      .then((offlineVisit) => {
-        setOfflineVisitState({
-          error: null,
-          data: offlineVisit ? offlineVisitToVisit(offlineVisit) : null,
-          isLoading: false,
-        });
-      })
-      .catch((err) => {
-        setOfflineVisitState({ error: err, data: null, isLoading: false });
-      });
-  }, [patientUuid]);
+export function useOfflineVisit(patientUuid: string): Omit<ReturnType<typeof useVisit>, 'isLoading'> {
+  const swrKey = patientUuid ? `offlineVisit/${patientUuid}` : null;
+  const offlineVisitSwr = useSWR<Visit>(swrKey, async () => {
+    const offlineVisit = await getOfflineVisitForPatient(patientUuid);
+    return offlineVisit ? offlineVisitToVisit(offlineVisit) : undefined;
+  });
 
   return {
-    currentVisit: offlineVisitState.data,
-    isLoading: offlineVisitState.isLoading,
-    isValidating: false,
-    error: offlineVisitState.error,
-    mutate: () => {},
+    currentVisit: offlineVisitSwr.data,
+    isValidating: offlineVisitSwr.isValidating,
+    error: offlineVisitSwr.error,
+    mutate: offlineVisitSwr.mutate,
   };
 }
 
