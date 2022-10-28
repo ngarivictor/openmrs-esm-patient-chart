@@ -42,7 +42,7 @@ const Forms: React.FC<FormsProps> = ({ patientUuid, patient, pageSize, pageUrl, 
   const session = useSession();
   let formsToDisplay = isOffline
     ? data?.filter((formInfo) => isValidOfflineFormEncounter(formInfo.form, htmlFormEntryForms))
-    : data;
+    : data?.filter(({ form }) => form.uuid === '37f6bd8d-586a-4169-95fa-5781f987fe62');
   formsToDisplay = formsToDisplay?.filter((formInfo) =>
     userHasAccess(formInfo?.form?.encounterType?.editPrivilege?.display, session?.user),
   );
