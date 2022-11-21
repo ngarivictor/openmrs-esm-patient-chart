@@ -1,9 +1,11 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { Button, ModalBody, ModalFooter, ModalHeader } from '@carbon/react';
-import { parseDate, showNotification, showToast, updateVisit, useVisit } from '@openmrs/esm-framework';
+import { parseDate, showNotification, showToast, updateVisit, useConfig, useVisit } from '@openmrs/esm-framework';
 import { first } from 'rxjs/operators';
 import styles from './end-visit-dialog.scss';
+import { changeAppointmentStatus, useCurrentPatientAppointments } from '../visit-form/visit-form.resource';
+import { ChartConfig } from '../../config-schema';
 
 interface EndVisitDialogProps {
   patientUuid: string;
@@ -13,6 +15,8 @@ interface EndVisitDialogProps {
 const EndVisitDialog: React.FC<EndVisitDialogProps> = ({ patientUuid, closeModal }) => {
   const { t } = useTranslation();
   const { currentVisit, mutate } = useVisit(patientUuid);
+  const { updateAppointmentModule } = useConfig() as ChartConfig;
+  const { currentAppointments } = useCurrentPatientAppointments(patientUuid, new AbortController());
 
   const endCurrentVisit = () => {
     const endVisitPayload = {
@@ -26,9 +30,12 @@ const EndVisitDialog: React.FC<EndVisitDialogProps> = ({ patientUuid, closeModal
     updateVisit(currentVisit.uuid, endVisitPayload, abortController)
       .pipe(first())
       .subscribe(
-        (response) => {
+        async (response) => {
           if (response.status === 200) {
             mutate();
+            updateAppointmentModule &&
+              currentAppointments.length &&
+              (await changeAppointmentStatus('Completed', currentAppointments[0].uuid, new AbortController()));
             closeModal();
 
             showToast({

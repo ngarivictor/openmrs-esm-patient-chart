@@ -49,6 +49,7 @@ import styles from './visit-form.scss';
 import { MemoizedRecommendedVisitType } from './recommended-visit-type.component';
 import { ChartConfig } from '../../config-schema';
 import { QueueEntryPayload, saveQueueEntry, usePriorities, useServices, useStatuses } from '../hooks/useServiceQueue';
+import { changeAppointmentStatus, useCurrentPatientAppointments } from './visit-form.resource';
 
 const StartVisitForm: React.FC<DefaultWorkspaceProps> = ({ patientUuid, closeWorkspace, promptBeforeClosing }) => {
   const { t } = useTranslation();
@@ -76,6 +77,7 @@ const StartVisitForm: React.FC<DefaultWorkspaceProps> = ({ patientUuid, closeWor
   const { services } = useServices(selectedLocation);
   const [selectedService, setSelectedService] = useState('');
   const [selectedStatus, setSelectedStatus] = useState('');
+  const { currentAppointments } = useCurrentPatientAppointments(patientUuid, new AbortController());
 
   useEffect(() => {
     if (locations && sessionUser?.sessionLocation?.uuid) {
@@ -111,7 +113,7 @@ const StartVisitForm: React.FC<DefaultWorkspaceProps> = ({ patientUuid, closeWor
       saveVisit(payload, abortController)
         .pipe(first())
         .subscribe(
-          (response) => {
+          async (response) => {
             if (response.status === 201) {
               if (config.showServiceQueueFields) {
                 const defaultStatus = config.defaultStatusConceptUuid;
@@ -164,6 +166,9 @@ const StartVisitForm: React.FC<DefaultWorkspaceProps> = ({ patientUuid, closeWor
                     },
                   );
               }
+              config.updateAppointmentModule &&
+                currentAppointments.length &&
+                (await changeAppointmentStatus('CheckedIn', currentAppointments[0].uuid, new AbortController()));
               closeWorkspace();
               mutate();
               showToast({

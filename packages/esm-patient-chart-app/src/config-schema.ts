@@ -72,6 +72,11 @@ export const esmPatientChartSchema = {
     _description: 'The UUID of the default status for the queues eg Waiting.',
     _default: '136203AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA',
   },
+  updateAppointmentModule: {
+    _type: Type.Boolean,
+    _description: 'Whether to update appointment status, when a visit is started',
+    _defaulf: false,
+  },
 };
 
 export interface ChartConfig {
@@ -84,6 +89,7 @@ export interface ChartConfig {
   serviceConceptSetUuid: string;
   statusConceptSetUuid: string;
   defaultStatusConceptUuid: string;
+  updateAppointmentModule: boolean;
 }
 
 export const configSchema = {
