@@ -12,15 +12,14 @@ const getAttributeValue = (attributeType, value) => {
   switch (attributeType?.datatypeClassname) {
     case 'org.openmrs.customdatatype.datatype.ConceptDatatype':
       return value?.display;
-    case 'org.openmrs.customdatatype.datatype.FloatDatatype':
-    case 'org.openmrs.customdatatype.datatype.FreeTextDatatype':
-    case 'org.openmrs.customdatatype.datatype.LongFreeTextDatatype':
-    case 'org.openmrs.customdatatype.datatype.BooleanDatatype':
-      return value;
     case 'org.openmrs.customdatatype.datatype.DateDatatype':
       return formatDate(new Date(value), {
         mode: 'wide',
       });
+    case 'org.openmrs.customdatatype.datatype.FloatDatatype':
+    case 'org.openmrs.customdatatype.datatype.FreeTextDatatype':
+    case 'org.openmrs.customdatatype.datatype.LongFreeTextDatatype':
+    case 'org.openmrs.customdatatype.datatype.BooleanDatatype':
     default:
       return value;
   }
