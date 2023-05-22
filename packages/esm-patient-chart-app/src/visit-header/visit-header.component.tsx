@@ -1,18 +1,8 @@
 import React, { useCallback, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import {
-  Button,
-  Header,
-  HeaderContainer,
-  HeaderGlobalAction,
-  HeaderGlobalBar,
-  HeaderMenuButton,
-  Tag,
-  Tooltip,
-} from '@carbon/react';
+import { Button, Header, HeaderContainer, HeaderGlobalAction, HeaderGlobalBar, HeaderMenuButton } from '@carbon/react';
 import { CloseFilled } from '@carbon/react/icons';
 import {
-  age,
   ConfigurableLink,
   useAssignedExtensions,
   useLayoutType,
@@ -24,109 +14,26 @@ import {
   ExtensionSlot,
 } from '@openmrs/esm-framework';
 import { launchPatientWorkspace } from '@openmrs/esm-patient-common-lib';
-import { MappedQueuePriority, useVisitQueueEntry } from '../visit/queue-entry/queue.resource';
-import { EditQueueEntry } from '../visit/queue-entry/edit-queue-entry.component';
+import { useVisitQueueEntry } from '../visit/queue-entry/queue.resource';
 import VisitHeaderSideMenu from './visit-header-side-menu.component';
 import styles from './visit-header.scss';
+import PatientInfoCard from './patient-info-card.component';
+import VisitQueueDetail from './visit-queue-details.component';
 
 interface PatientInfoProps {
   patient: fhir.Patient;
 }
 
 const PatientInfo: React.FC<PatientInfoProps> = ({ patient }) => {
-  const { t } = useTranslation();
-  const isTablet = useLayoutType() === 'tablet';
-
-  // Render translated gender
-  const getGender = useCallback(
-    (gender) => {
-      switch (gender) {
-        case 'male':
-          return t('male', 'Male');
-        case 'female':
-          return t('female', 'Female');
-        case 'other':
-          return t('other', 'Other');
-        case 'unknown':
-          return t('unknown', 'Unknown');
-        default:
-          return gender;
-      }
-    },
-    [t],
-  );
-
-  const name = `${patient?.name?.[0].given?.join(' ')} ${patient?.name?.[0].family}`;
-  const patientUuid = `${patient?.id}`;
-  const { currentVisit } = useVisit(patientUuid);
-  const info = `${parseInt(age(patient?.birthDate))}, ${getGender(patient?.gender)}`;
-  const truncate = !isTablet && name.trim().length > 25;
-  const { queueEntry } = useVisitQueueEntry(patientUuid, currentVisit?.uuid);
-
-  const visitType = queueEntry?.visitType ?? '';
+  const { currentVisit } = useVisit(patient?.id);
+  const { queueEntry } = useVisitQueueEntry(patient?.id, currentVisit?.uuid);
   const priority = queueEntry?.priority ?? '';
 
-  const getServiceString = useCallback(() => {
-    switch (queueEntry?.status?.toLowerCase()) {
-      case 'waiting':
-        return `Waiting for ${queueEntry.service}`;
-      case 'in service':
-        return `Attending ${queueEntry.service}`;
-      case 'finished service':
-        return `Finished ${queueEntry.service}`;
-      default:
-        return '';
-    }
-  }, [queueEntry]);
-
-  const getTagType = (priority: string) => {
-    switch (priority as MappedQueuePriority) {
-      case 'emergency':
-        return 'red';
-      case 'not urgent':
-        return 'green';
-      default:
-        return 'gray';
-    }
-  };
-
-  const text = (
-    <>
-      <p className={styles.tooltipPatientName}>{name}</p>
-      <p className={styles.tooltipPatientInfo}>{info}</p>
-    </>
-  );
-
   return (
-    <>
-      {truncate ? (
-        <Tooltip align="bottom-left" width={100} label={text}>
-          <button className={styles.longPatientNameBtn} type="button">
-            {name.slice(0, 25) + '...'}
-          </button>
-        </Tooltip>
-      ) : (
-        <span className={styles.patientName}>{name} </span>
-      )}
-      <span className={styles.patientInfo}>
-        {parseInt(age(patient.birthDate))}, {getGender(patient.gender)}
-      </span>
-      {queueEntry ? (
-        <>
-          <div className={styles.navDivider} />
-          <span className={styles.patientInfo}>{getServiceString()}</span>
-          <div className={styles.navDivider} />
-          <span className={styles.patientInfo}>{visitType}</span>
-          <Tag
-            className={priority === 'Priority' ? styles.priorityTag : styles.tag}
-            type={getTagType(priority?.toLocaleLowerCase('en'))}
-          >
-            {priority}
-          </Tag>
-          <EditQueueEntry queueEntry={queueEntry} />{' '}
-        </>
-      ) : null}
-    </>
+    <div className={styles.patientDetails}>
+      <PatientInfoCard patient={patient} />
+      <VisitQueueDetail queueEntry={queueEntry} priority={priority} />
+    </div>
   );
 };
 
@@ -200,9 +107,7 @@ const VisitHeader: React.FC = () => {
             </div>
           </ConfigurableLink>
           <div className={styles.navDivider} />
-          <div className={styles.patientDetails}>
-            <PatientInfo patient={patient} />
-          </div>
+          <PatientInfo patient={patient} />
           <HeaderGlobalBar>
             <ExtensionSlot extensionSlotName="visit-header-right-slot" />
             {!hasActiveVisit && (

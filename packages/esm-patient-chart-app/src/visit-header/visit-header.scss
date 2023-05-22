@@ -33,11 +33,6 @@
   display: flex;
   align-items: center;
   color: $ui-02;
-  padding: spacing.$spacing-04 spacing.$spacing-05;
-
-  &:hover {
-    background-color: colors.$teal-90;
-  }
 
   :global(.cds--popover--bottom .cds--popover-content) {
     text-align: center
@@ -46,6 +41,7 @@
   .patientName {
     @include type.type-style('heading-compact-01');
     color: $ui-02;
+    padding: 0 0.625rem;
   }
 
   .longPatientNameBtn {
@@ -68,7 +64,15 @@
   .patientInfo {
     color: $color-gray-30;
     @include type.type-style('body-compact-01');
-    margin: 0 spacing.$spacing-03 0;
+    padding: 0 spacing.$spacing-05;
+    height: 3rem;
+    display: flex;
+    align-items: center;
+
+    &:hover{
+      background-color: colors.$teal-90;
+      cursor: pointer;
+    }
   }
 }
 
@@ -83,13 +87,13 @@
 }
 
 .navDivider {
-  background-color: colors.$teal-20;
-  width: 0.05rem;
-  height: 2.25rem;
+  background-color: #007d79;
+  width: 0.063rem;
+  height: 2rem;
 }
 
 .tag {
-  margin: 0.25rem 0;
+  margin: 0 spacing.$spacing-05;
 }
 
 .priorityTag {
@@ -97,4 +101,13 @@
   @include type.type-style('label-01');
   color: #943d00;
   background-color: #ffc9a3;
+  margin: 0 spacing.$spacing-05;
+}
+.editQueue {
+  margin-left: 0.325rem;
+  background-color: transparent;
+
+  &:hover {
+    background-color: transparent;
+  }
 }
