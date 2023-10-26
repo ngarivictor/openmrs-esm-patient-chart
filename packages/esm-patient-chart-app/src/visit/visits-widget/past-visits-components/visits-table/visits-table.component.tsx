@@ -1,4 +1,4 @@
-import React, { useMemo, useState, useEffect } from 'react';
+import React, { useMemo, useState, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import isEmpty from 'lodash-es/isEmpty';
 import {
@@ -31,6 +31,7 @@ import {
   isDesktop,
   navigate,
   parseDate,
+  setCurrentVisit,
   showModal,
   showToast,
   useLayoutType,
@@ -38,7 +39,7 @@ import {
   useSession,
   userHasAccess,
 } from '@openmrs/esm-framework';
-import { launchPatientWorkspace, PatientChartPagination } from '@openmrs/esm-patient-common-lib';
+import { FormEntryProps, launchPatientWorkspace, PatientChartPagination } from '@openmrs/esm-patient-common-lib';
 import type { HtmlFormEntryForm } from '@openmrs/esm-patient-forms-app/src/config-schema';
 import { deleteEncounter } from './visits-table.resource';
 import { MappedEncounter } from '../../visit.resource';
@@ -129,12 +130,21 @@ const VisitTable: React.FC<VisitTableProps> = ({ showAllEncounters, visits, pati
     visitTypeUuid?: string,
     visitStartDatetime?: string,
     visitStopDatetime?: string,
+    closeRetrospectiveDataEntryOnSubmission: boolean = false,
   ) => {
     const htmlForm = htmlFormEntryFormsConfig?.find((form) => form.formUuid === formUuid);
     if (isEmpty(htmlForm)) {
       launchPatientWorkspace('patient-form-entry-workspace', {
         workspaceTitle: formName,
-        formInfo: { visitUuid, visitTypeUuid, visitStartDatetime, visitStopDatetime, formUuid, encounterUuid },
+        formInfo: {
+          visitUuid,
+          visitTypeUuid,
+          visitStartDatetime,
+          visitStopDatetime,
+          formUuid,
+          encounterUuid,
+          closeRetrospectiveDataEntryOnSubmission,
+        } as FormEntryProps,
       });
     } else {
       navigate({
@@ -193,6 +203,23 @@ const VisitTable: React.FC<VisitTableProps> = ({ showAllEncounters, visits, pati
       }),
     );
   };
+
+  const handleEditEncounter = useCallback(
+    (selectedVisit: MappedEncounter) => {
+      setCurrentVisit(patientUuid, selectedVisit.visitUuid);
+      launchWorkspace(
+        selectedVisit?.form?.uuid,
+        selectedVisit?.visitUuid,
+        selectedVisit?.id,
+        selectedVisit?.form?.display,
+        selectedVisit?.visitTypeUuid,
+        selectedVisit?.visitStartDatetime,
+        selectedVisit?.visitStopDatetime,
+        true,
+      );
+    },
+    [patientUuid],
+  );
 
   if (!visits?.length) {
     return <p className={`${styles.bodyLong01} ${styles.text02}`}>{t('noEncountersFound', 'No encounters found')}</p>;
@@ -287,17 +314,7 @@ const VisitTable: React.FC<VisitTableProps> = ({ showAllEncounters, visits, pati
                                       className={styles.menuItem}
                                       itemText={t('editThisEncounter', 'Edit this encounter')}
                                       size={desktopLayout ? 'sm' : 'lg'}
-                                      onClick={() => {
-                                        launchWorkspace(
-                                          selectedVisit?.form?.uuid,
-                                          selectedVisit?.visitUuid,
-                                          selectedVisit?.id,
-                                          selectedVisit?.form?.display,
-                                          selectedVisit?.visitTypeUuid,
-                                          selectedVisit?.visitStartDatetime,
-                                          selectedVisit?.visitStopDatetime,
-                                        );
-                                      }}
+                                      onClick={() => handleEditEncounter(selectedVisit)}
                                     />
                                   )}
                                 {userHasAccess(selectedVisit?.editPrivilege, session?.user) && (
@@ -324,17 +341,7 @@ const VisitTable: React.FC<VisitTableProps> = ({ showAllEncounters, visits, pati
                                 {selectedVisit?.form?.uuid && (
                                   <Button
                                     kind="ghost"
-                                    onClick={() => {
-                                      launchWorkspace(
-                                        selectedVisit.form.uuid,
-                                        selectedVisit.visitUuid,
-                                        selectedVisit.id,
-                                        selectedVisit.form.display,
-                                        selectedVisit.visitTypeUuid,
-                                        selectedVisit?.visitStartDatetime,
-                                        selectedVisit?.visitStopDatetime,
-                                      );
-                                    }}
+                                    onClick={() => handleEditEncounter(selectedVisit)}
                                     renderIcon={(props) => <Edit size={16} {...props} />}
                                   >
                                     {t('editThisEncounter', 'Edit this encounter')}

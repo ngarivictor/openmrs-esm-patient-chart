@@ -22,4 +22,5 @@ export type SingleSpaProps = AppProps & {
   handlePostResponse?: (encounter: Encounter) => void;
   handleOnValidate?: (valid: boolean) => void;
   showDiscardSubmitButtons?: boolean;
+  closeRetrospectiveDataEntryOnSubmission?: boolean;
 };

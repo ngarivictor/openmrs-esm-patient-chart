@@ -8,7 +8,13 @@ import { FormSchemaService } from '../form-schema/form-schema.service';
 import { FormSubmissionService } from '../form-submission/form-submission.service';
 import { EncounterResourceService } from '../openmrs-api/encounter-resource.service';
 import { Encounter, FormSchema, Identifier, Order } from '../types';
-import { showToast, showNotification, getSynchronizationItems, createGlobalStore } from '@openmrs/esm-framework';
+import {
+  showToast,
+  showNotification,
+  getSynchronizationItems,
+  createGlobalStore,
+  setCurrentVisit,
+} from '@openmrs/esm-framework';
 import { PatientPreviousEncounterService } from '../openmrs-api/patient-previous-encounter.service';
 
 import { patientFormSyncItem, PatientFormSyncItemContent } from '../offline/sync';
@@ -239,6 +245,15 @@ export class FeWrapperComponent implements OnInit, OnDestroy {
               description: this.translateService.instant('formSubmittedSuccessfully'),
               title: this.form.schema.display ?? this.form.schema.name,
             });
+
+            const closeRetrospectiveDataEntryOnSubmission = this.singleSpaPropsService.getProp(
+              'closeRetrospectiveDataEntryOnSubmission',
+              false,
+            );
+
+            if (closeRetrospectiveDataEntryOnSubmission) {
+              setCurrentVisit(null, null);
+            }
 
             this.closeForm();
           },
