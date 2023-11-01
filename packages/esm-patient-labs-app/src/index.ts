@@ -7,7 +7,7 @@ import {
 } from '@openmrs/esm-framework';
 import { createDashboardLink, registerWorkspace } from '@openmrs/esm-patient-common-lib';
 import { configSchema } from './config-schema';
-import { dashboardMeta } from './test-results/dashboard.meta';
+import { dashboardMeta, ordersDashboardMeta } from './test-results/dashboard.meta';
 
 const moduleName = '@openmrs/esm-patient-labs-app';
 
@@ -45,13 +45,23 @@ export const testResultsDashboardLink =
   );
 
 export const labOrderPanel = getAsyncLifecycle(
-  () => import('./lab-orders/lab-order-basket-panel/lab-order-basket-panel.extension'),
+  () => import('./lab-order-basket/lab-order-basket-panel/lab-order-basket-panel.extension'),
   options,
 );
+
+export const ordersDashboardLink = getSyncLifecycle(
+  createDashboardLink({
+    ...ordersDashboardMeta,
+    moduleName,
+  }),
+  options,
+);
+
+export const ordersDashboard = getAsyncLifecycle(() => import('./orders/lab-orders-summary.component'), options);
 
 registerWorkspace({
   name: 'add-lab-order',
   type: 'order',
   title: 'Add lab order',
-  load: getAsyncLifecycle(() => import('./lab-orders/add-lab-order/add-lab-order.workspace'), options),
+  load: getAsyncLifecycle(() => import('./lab-order-basket/add-lab-order/add-lab-order.workspace'), options),
 });
