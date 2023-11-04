@@ -45,9 +45,7 @@ import styles from './visit-notes-form.scss';
 
 const visitNoteFormSchema = z.object({
   noteDate: z.date(),
-  primaryDiagnosisSearch: z.string({
-    required_error: 'Choose at least one primary diagnosis',
-  }),
+  primaryDiagnosisSearch: z.string().optional(),
   secondaryDiagnosisSearch: z.string().optional(),
   clinicalNote: z.string().optional(),
 });
